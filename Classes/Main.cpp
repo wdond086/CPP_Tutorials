@@ -99,10 +99,25 @@ struct Entity {
 int Entity::a;
 int Entity::b;
 
-// Every non static method gets an instance of the class as a parameter. Hence, non static varables cannot be accessed by a static class since it d oes not get
+// Every non static method gets an instance of the class as a parameter. Hence, non static varables cannot be accessed by a static class since it does not get
 // a class instance to be able to access them.
 
-class EntityClass {
+
+
+// This is an interface
+class Printable {
+public:
+    // By doing this, we force every sub class of this class to implement their own version of the method returnName
+    // This is called a pure virtual function
+    virtual std::string getClassName() = 0;
+};
+
+void Print(Printable* obj) {
+    std::cout << obj->getClassName() << std::endl;
+}
+
+
+class EntityClass : public Printable {
 public:
     float X, Y;
 
@@ -137,21 +152,41 @@ public:
     virtual std::string getName() {
         return "Entity";
     }
+
+    std::string getClassName() override {
+        return "Entity";
+    }
 };
 
 // Making PlayerEntity inherits from Entityclass. 
 // If you want a subclass' method to be able to override a method in the parent class, you need to use the keyword 'virtual' when creating the method in the parent class.
 class PlayerEntity : public EntityClass {
 public:
-    std::string name;
+    std::string m_Name;
+
+    PlayerEntity(const std::string& name) {
+        m_Name = name;
+        this->X = 0.0f;   /// FYI: The this is not neccesary in this case as you can see in the other version of the constructor
+        this->Y = 0.0f;
+    }
+
+    PlayerEntity(const std::string& name, float x, float y) {
+        m_Name = name;
+        X = x;
+        Y = y;
+    }
 
     void printName() {
-        std::cout << "The player name is " << name << std::endl;
+        std::cout << "The player name is " << m_Name << std::endl;
     }
 
     // This will override the 'getName' method in the parent class. Adding the override annotation makes the code easier to read
     std::string getName() override {
-        return name;
+        return m_Name;
+    }
+
+    std::string getClassName() {
+        return "Player";
     }
 };
 
@@ -203,5 +238,40 @@ int main()
     EntityClass* en_2 = new EntityClass(5.0f, 10.0f); // Calling the constructor this way will do a heap allocation, so the delete method has to be called after all is done
     CustomLog::Write(en_2);  // Just demonstrating the use of static methods in another class.
     en_1.Print();
+    PlayerEntity* player1 = new PlayerEntity("Player 1");
+    PlayerEntity* player2 = new PlayerEntity("Player 2", 1.5f, 3.2f);
+    player1->Print();
+    player2->Print();
+    player1->Move(2.0f, 2.0f);
+    player2->Move(2.0f, 2.0f);
+    player1->Print();
+    player2->Print();
+    Print(player1);
+    Print(en_2);
+    Print(player2);
     delete en_2;
+    delete player1;
+    delete player2;
+
+
+    ///////// ARRAYS
+    // An array of integers, size 5, all initialized to zero
+    // Arrays are stored in a list with no space between them
+    int example[5];
+    example[0] = 2;
+    example[4] = 4;
+
+    std::cout << example[0] << std::endl;   // Will print the data at that location
+    std::cout << example << std::endl;      // Will print the memory location of the array
+
+    // Since arrays are just pointers, we can manipulate them using pointer arithmetic as shown below
+    // to do example[2] = 6
+    int* array_ptr = example;
+    *(array_ptr + 2) = 6;
+
+    // As of now, all these have been created in the stack, but we can create in the heap using the code below
+    int* heapArray = new int[5];
+    // To find the size of a stack allocated array, you can use the following calculation. NOTE: The array has to be stack allocated
+    int size = sizeof(example) / sizeof(int);
+    delete[] heapArray; // How to delete a heap created array
 }
